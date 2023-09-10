@@ -1,7 +1,4 @@
-import os
-import psutil
-import platform
-import basic_functions
+import os,psutil,platform,basic_functions,cv2
 from datetime import datetime
 import speech_recognition as s_r
 from usbmonitor import USBMonitor
