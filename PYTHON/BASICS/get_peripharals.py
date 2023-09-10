@@ -1,9 +1,13 @@
-import psutil
 import os
+import psutil
 import platform
-from datetime import datetime
 import basic_functions
-perifarals_file = os.path.join(os.path.expanduser("~"),"Documents","FRIDAY_AI","PERIPHARALS")
+from datetime import datetime
+import speech_recognition as s_r
+from usbmonitor import USBMonitor
+from usbmonitor.attributes import ID_MODEL, ID_MODEL_ID, ID_VENDOR_ID
+
+peripharals_file = os.path.join(os.path.expanduser("~"),"Documents","FRIDAY_AI","PERIPHARALS")
 
 data = []
 def get_size(bytes, suffix="B"):
@@ -19,102 +23,102 @@ def get_size(bytes, suffix="B"):
             return f"{bytes:.2f}{unit}{suffix}"
         bytes /= factor
 
-print("="*40, "System Information", "="*40)
-
 string = "="*40, "System Information", "="*40
 data.append(string)
 
 uname = platform.uname()
-print(f"System: {uname.system}\nNode Name: {uname.node}\nRelease: {uname.release}\nVersion: {uname.version}\nMachine: {uname.machine}\nProcessor: {uname.processor}")
 
-data.append(f"System: {uname.system}\nNode Name: {uname.node}\nRelease: {uname.release}\nVersion: {uname.version}\nMachine: {uname.machine}\nProcessor: {uname.processor}")
+data.append(f"System: {uname.system}\nNode Name: {uname.node}\nRelease: {uname.release}\nVersion: {uname.version}\nMachine: {uname.machine}\nProcessor: {uname.processor}\n")
 
 # Boot Time
-print("="*40, "Boot Time", "="*40)
-
 string = "="*40, "Boot Time", "="*40
 data.append(string)
 
 boot_time_timestamp = psutil.boot_time()
 bt = datetime.fromtimestamp(boot_time_timestamp)
-print(f"Boot Time: {bt.year}/{bt.month}/{bt.day} {bt.hour}:{bt.minute}:{bt.second}")
-data.append(f"Boot Time: {bt.year}/{bt.month}/{bt.day} {bt.hour}:{bt.minute}:{bt.second}")
+data.append(f"\nBoot Time: {bt.year}/{bt.month}/{bt.day} {bt.hour}:{bt.minute}:{bt.second}\n")
 
 # let's print CPU information
-print("="*40, "CPU Info", "="*40)
+string = "="*40, "CPU Info", "="*40
+data.append(string)
+
 
 # number of cores
-print(f"Physical cores: {psutil.cpu_count(logical=False)}\nTotal cores: {psutil.cpu_count(logical=True)}")
-data.append(f"Physical cores: {psutil.cpu_count(logical=False)}\nTotal cores: {psutil.cpu_count(logical=True)}")
+data.append(f"\nPhysical cores: {psutil.cpu_count(logical=False)}\nTotal cores: {psutil.cpu_count(logical=True)}")
 
 # CPU frequencies
 cpufreq = psutil.cpu_freq()
-print(f"Max Frequency: {cpufreq.max:.2f}Mhz\nMin Frequency: {cpufreq.min:.2f}Mhz\nCurrent Frequency: {cpufreq.current:.2f}Mhz")
-data.append(f"Max Frequency: {cpufreq.max:.2f}Mhz\nMin Frequency: {cpufreq.min:.2f}Mhz\nCurrent Frequency: {cpufreq.current:.2f}Mhz")
+data.append(f"\nMax Frequency: {cpufreq.max:.2f}Mhz\nMin Frequency: {cpufreq.min:.2f}Mhz\nCurrent Frequency: {cpufreq.current:.2f}Mhz\n")
 
 # CPU usage
-cpu_usage =[]
-print("CPU Usage Per Core:")
-for i, percentage in enumerate(psutil.cpu_percent(percpu=True, interval=1)):
-    print(f"Core {i}: {percentage}%")
-print(f"Total CPU Usage: {psutil.cpu_percent()}%")
 
+data.append("CPU Usage Per Core:\n")
+for i, percentage in enumerate(psutil.cpu_percent(percpu=True, interval=1)):
+    data.append(f"Core {i}: {percentage}%\n")
+data.append(f"Total CPU Usage: {psutil.cpu_percent()}%\n")
 # Memory Information
-print("="*40, "Memory Information", "="*40)
+string = "="*40, "Memory Information", "="*40
+data.append(string)
 # get the memory details
 svmem = psutil.virtual_memory()
-print(f"Total: {get_size(svmem.total)}")
-print(f"Available: {get_size(svmem.available)}")
-print(f"Used: {get_size(svmem.used)}")
-print(f"Percentage: {svmem.percent}%")
-print("="*20, "SWAP", "="*20)
+data.append(f"\nTotal: {get_size(svmem.total)}\nAvailable: {get_size(svmem.available)}\nUsed: {get_size(svmem.used)}\nPercentage: {svmem.percent}%\n")
+
+string = "="*20, "SWAP", "="*20
+data.append(string)
 # get the swap memory details (if exists)
 swap = psutil.swap_memory()
-print(f"Total: {get_size(swap.total)}")
-print(f"Free: {get_size(swap.free)}")
-print(f"Used: {get_size(swap.used)}")
-print(f"Percentage: {swap.percent}%")
+data.append(f"\nTotal: {get_size(swap.total)}\nFree: {get_size(swap.free)}\nUsed: {get_size(swap.used)}\nPercentage: {swap.percent}%\n")
 
 # Disk Information
-print("="*40, "Disk Information", "="*40)
-print("Partitions and Usage:")
+string = "="*40, "Disk Information", "="*40,"\nPartitions and Usage:"
+data.append(string)
 # get all disk partitions
 partitions = psutil.disk_partitions()
 for partition in partitions:
-    print(f"=== Device: {partition.device} ===")
-    print(f"  Mountpoint: {partition.mountpoint}")
-    print(f"  File system type: {partition.fstype}")
+    data.append(f"\n=== Device: {partition.device} ===\n  Mountpoint: {partition.mountpoint}\n  File system type: {partition.fstype}")
     try:
         partition_usage = psutil.disk_usage(partition.mountpoint)
     except PermissionError:
         # this can be catched due to the disk that
         # isn't ready
         continue
-    print(f"  Total Size: {get_size(partition_usage.total)}")
-    print(f"  Used: {get_size(partition_usage.used)}")
-    print(f"  Free: {get_size(partition_usage.free)}")
-    print(f"  Percentage: {partition_usage.percent}%")
+    data.append(f"\n  Total Size: {get_size(partition_usage.total)}\n  Used: {get_size(partition_usage.used)}\n  Free: {get_size(partition_usage.free)}\n  Percentage: {partition_usage.percent}%")
 # get IO statistics since boot
 disk_io = psutil.disk_io_counters()
-print(f"Total read: {get_size(disk_io.read_bytes)}")
-print(f"Total write: {get_size(disk_io.write_bytes)}")
+data.append(f"\nTotal read: {get_size(disk_io.read_bytes)}\nTotal write: {get_size(disk_io.write_bytes)}\n")
 
 # Network information
-print("="*40, "Network Information", "="*40)
+string = "="*40, "Network Information", "="*40
+data.append(string)
 # get all network interfaces (virtual and physical)
 if_addrs = psutil.net_if_addrs()
 for interface_name, interface_addresses in if_addrs.items():
     for address in interface_addresses:
-        print(f"=== Interface: {interface_name} ===")
+        data.append(f"\n=== Interface: {interface_name} ===\n")
         if str(address.family) == 'AddressFamily.AF_INET':
-            print(f"  IP Address: {address.address}")
-            print(f"  Netmask: {address.netmask}")
-            print(f"  Broadcast IP: {address.broadcast}")
+            data.append(f"\n  IP Address: {address.address}\n  Netmask: {address.netmask}\n  Broadcast IP: {address.broadcast}\n")
         elif str(address.family) == 'AddressFamily.AF_PACKET':
-            print(f"  MAC Address: {address.address}")
-            print(f"  Netmask: {address.netmask}")
-            print(f"  Broadcast MAC: {address.broadcast}")
+            data.append(f"\n  MAC Address: {address.address}\n  Netmask: {address.netmask}\n  Broadcast MAC: {address.broadcast}\n")
 # get IO statistics since boot
 net_io = psutil.net_io_counters()
-print(f"Total Bytes Sent: {get_size(net_io.bytes_sent)}")
-print(f"Total Bytes Received: {get_size(net_io.bytes_recv)}")
+data.append(f"\nTotal Bytes Sent: {get_size(net_io.bytes_sent)}\nTotal Bytes Received: {get_size(net_io.bytes_recv)}\n")
+
+string = "="*40, "Connected Devices", "="*40,"\n"
+data.append(string)
+string = "="*20, "Connected USB Devices", "="*20,"\n"
+# Create the USBMonitor instance
+monitor = USBMonitor()
+
+# Get the current devices
+devices_dict = monitor.get_available_devices()
+
+# Print them
+for device_id, device_info in devices_dict.items():
+    data.append(f"  {device_id} -- {device_info[ID_MODEL]} ({device_info[ID_MODEL_ID]} - {device_info[ID_VENDOR_ID]})")
+string = "="*20, "Microphones", "="*20,"\n"
+data.append(string)
+for item in s_r.Microphone.list_microphone_names():
+    data.append(f"  {item}\n")
+
+
+basic_functions.write_file(1,f"peripharals_{basic_functions.date_for_file()}",peripharals_file,data)

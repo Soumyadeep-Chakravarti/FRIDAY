@@ -20,17 +20,18 @@ def make_folders_files():
         for i in range(3,len(user_data)):
             make_file(1,'logs',os.path.join(os.path.expanduser("~"),"Documents","FRIDAY_AI","LOGS",user_data[i]))
     
-
-
-    
-
+def date_for_file():
+    import time
+    date = time.strftime('%d%b%Y', time.localtime()).upper()
+    return date
 
 def make_file(file_type:int,file_name:str,path:str):
     import pickle
     import datetime
     import csv
 
-    lines = [f"START OF FILE {file_name}",f"FILE TYPE: {file_type}",f"CREATED ON: {f'{datetime.datetime.date}'.capitalize}"]
+
+    lines = [f"START OF FILE {file_name}",f"FILE TYPE: {file_type}",f"CREATED ON: {f'{date_for_file()}'.capitalize}"]
     if file_type == 0:
         with open(f"{file_name}.bat",'wb') as file:
             for line in lines:
@@ -53,7 +54,7 @@ def read_file(file_type:int,file_name:str,path:str):
     import csv
     import os
     data = []
-    lines = [f"START OF FILE {file_name}",f"FILE TYPE: {file_type}",f"CREATED ON: {f'{datetime.datetime.date}'.capitalize}"]
+    lines = [f"START OF FILE {file_name}",f"FILE TYPE: {file_type}",f"CREATED ON: {f'{date_for_file()}'.capitalize}"]
     if file_type == 0:
         with open(os.path.join(path,file_name),'wr') as file:
             data = pickle.load(file)
