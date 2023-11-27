@@ -1,4 +1,4 @@
-import spacy #type:ignore
+import spacy 
 
 def load_nlp_model(language="en_core_web_sm"):
     """
