@@ -4,17 +4,19 @@ import pickle
 
 class PhoneBook:
     def __init__(self):
+        phonebook_address = important_items.phonebook_address
         self.load_phone_book()
+        
 
     def load_phone_book(self):
         try:
-            with open(important_items.phonebook_address, 'rb') as file:
+            with open(self.phonebook_address, 'rb') as file:
                 self.contacts = pickle.load(file)
         except FileNotFoundError:
             self.contacts = {}
 
     def save_phone_book(self):
-        with open(important_items.phonebook_address, 'wb') as file:
+        with open(self.phonebook_address, 'wb') as file:
             pickle.dump(self.contacts, file)
 
     def add_contact(self, name, number):
